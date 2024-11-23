@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Account Handler</h1>
-    <p><a href="javascript:registerAcctHandler()">Register</a></p>
+    <p><a id="registerLink" href="javascript:registerAcctHandler()">Register</a></p>
     <div id="account">
       <acct-handler id="handler" ></acct-handler>
     </div>
@@ -24,6 +24,14 @@
       }
 
       window.onload = () => {
+
+        const registerLink = document.getElementById('registerLink');
+        if (registerLink !== null) {
+          registerLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerAcctHandler();
+          });
+        }
 
         const fragment = document.location.hash.slice(1);
 
