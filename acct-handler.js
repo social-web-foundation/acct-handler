@@ -25,14 +25,16 @@ class AcctHandler extends HTMLElement {
     const [protocol, address] = acct.split(':');
     const parts = address.split("@");
     const domain = parts[1];
-    fetch(`https://${domain}/.well-known/webfinger?resource=${encodeURIComponent(acct)}`)
+    fetch(`https://${domain}/.well-known/webfinger?resource=${encodeURIComponent(acct)}`, {
+      mode: 'no-cors',
+    })
       .then(res => res.json())
       .then(json => {
         const links = json.links;
         const ap = links.find(link =>
           link.rel === "self" && link.type === "application/activity+json");
         if (ap) {
-          fetch(ap.href, { headers: { Accept: ap.type } })
+          fetch(ap.href, { headers: { Accept: ap.type }, mode: 'no-cors' })
             .then(res => res.json())
             .then(json => {
               this.showActor(json);
