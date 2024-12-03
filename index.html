@@ -8,14 +8,14 @@
     <h1>Account Handler</h1>
     <p><a id="registerLink" href="javascript:registerAcctHandler()">Register</a></p>
     <div id="account">
-      <acct-handler id="handler" ></acct-handler>
+      <activitypub-actor id="handler" ></activitypub-actor>
     </div>
-    <script type="module" src="acct-handler.js"></script>
+    <script type="module" src="./activitypub-actor.js"></script>
     <script>
       function registerAcctHandler() {
         const loc = document.location.origin + document.location.pathname;
         console.log("Registering protocol handler");
-        const handler = `${loc}#%s`
+        const handler = `${loc}?q=%s`
         console.log(handler)
         navigator.registerProtocolHandler(
           "web+acct",
@@ -24,7 +24,6 @@
       }
 
       window.onload = () => {
-
         const registerLink = document.getElementById('registerLink');
         if (registerLink !== null) {
           registerLink.addEventListener('click', (e) => {
@@ -33,12 +32,12 @@
           });
         }
 
-        const fragment = document.location.hash.slice(1);
+        const address = new URLSearchParams(document.location.search).get("q");
 
-        if (fragment && fragment.startsWith("web+acct:")) {
-          const acct = fragment.slice(4)
+        if (address && address.startsWith("web+acct:")) {
+          const acct = address.slice(4) // take off the web+ part
           const handler = document.getElementById("handler")
-          handler.acct = acct
+          handler.webfinger = acct
         }
       }
     </script>
