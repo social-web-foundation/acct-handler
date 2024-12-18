@@ -2,6 +2,7 @@
 // Description: Fetches the actor object from the given webfinger and displays the name, summary, and url of the actor.
 
 import './activitypub-actor-profile.js';
+import './activitypub-activity-collection.js';
 
 const AS2_NS = 'https://www.w3.org/ns/activitystreams#';
 const AS2_PREFIX = 'as:';
@@ -24,9 +25,41 @@ class ActivityPubActor extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.innerHTML = `
-        <div>
-          <activitypub-actor-profile class="profile" />
+      <style>
+        .actor {
+          display: block;
+        }
+        .feed-selector, .feed {
+          display: block;
+          visibility: visible;
+        }
+      </style>
+      <div class="actor">
+        <div class="actor-profile">
+          <activitypub-actor-profile class="profile">
+          </activitypub-actor-profile>
         </div>
+        <nav class="feed-selector">
+          <menu>
+            <li>
+              <button class="outbox active">Outbox</button>
+            </li>
+            <li>
+              <button class="following">Following</button>
+            </li>
+            <li>
+              <button class="followers">Followers</button>
+            </li>
+            <li>
+              <button class="liked">Liked</button>
+            </li>
+          </menu>
+        </nav>
+        <div class="feed">
+          <activitypub-activity-collection class="outbox-feed">
+          </activitypub-activity-collection>
+        </div>
+      </div>
       `;
   }
 
@@ -56,9 +89,16 @@ class ActivityPubActor extends HTMLElement {
     const parts = address.split("@");
     const domain = parts[1];
     const webfingerUrl = `https://${domain}/.well-known/webfinger?resource=acct:${address}`;
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(webfingerUrl)}`;
 
     try {
-      const res = await fetch(webfingerUrl);
+      const res = await fetch(proxyUrl, {
+        headers: { Accept: 'application/jrd+json, application/json' }
+      });
+      if (!res.ok) {
+        console.error('Failed to fetch webfinger', res);
+        return;
+      }
       const json = await res.json();
       const links = json.links;
       const ap = links.find(link =>
@@ -72,10 +112,15 @@ class ActivityPubActor extends HTMLElement {
   }
 
   async updateActorId(id) {
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(id)}`;
     try {
-      const res = await fetch(id, {
-        headers: { Accept: 'application/activity+json' }
+      const res = await fetch(proxyUrl, {
+        headers: { Accept: 'application/activity+json, application/ld+json, application/json' }
       })
+      if (!res.ok) {
+        console.error('Failed to fetch actor', res);
+        return;
+      }
       const json = await res.json();
 
       const profile = this.shadowRoot.querySelector('.profile');
@@ -85,6 +130,10 @@ class ActivityPubActor extends HTMLElement {
       profile.url = json.url;
 
       this.setIcon(profile, json.icon);
+
+      const outboxFeed = this.shadowRoot.querySelector('.outbox-feed');
+
+      outboxFeed.feedId = json.outbox;
 
     } catch (err) {
       console.error(err)
