@@ -10,7 +10,7 @@
       <h1>Account Handler</h1>
       <nav>
         <ul>
-          <li><a href="javascript:registerAcctHandler()">Register</a></li>
+          <li><a id="registerLink" href="javascript:registerAcctHandler()">Register</a></li>
         </ul>
         <form action="." method="get">
           <label for="actor-search">Actor:</label>
@@ -40,6 +40,13 @@
       window.registerAcctHandler = registerAcctHandler;
 
       window.onload = () => {
+        const registerLink = document.getElementById('registerLink');
+        if (registerLink !== null) {
+          registerLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerAcctHandler();
+          });
+        }
 
         ActivityPubElement.fetchFunction =
           async (url, options) =>
