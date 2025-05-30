@@ -3,7 +3,9 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'node:util'
 import crypto from 'node:crypto'
-import { version } from './package.json'
+import { readFileSync } from 'node:fs'
+
+const version = JSON.parse(readFileSync('./package.json', { encoding: 'utf8' }))
 
 const generateKeyPair = promisify(crypto.generateKeyPair)
 
