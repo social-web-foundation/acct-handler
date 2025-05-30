@@ -28,5 +28,8 @@
   "bugs": {
     "url": "https://github.com/social-web-foundation/acct-handler/issues"
   },
-  "homepage": "https://github.com/social-web-foundation/acct-handler#readme"
+  "homepage": "https://github.com/social-web-foundation/acct-handler#readme",
+  "devDependencies": {
+    "standard": "^17.1.2"
+  }
 }
