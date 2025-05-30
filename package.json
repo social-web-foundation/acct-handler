@@ -1,6 +1,32 @@
 {
   "type": "module",
   "dependencies": {
-    "express": "^4.18.2"
-  }
+    "express": "^4.21.2"
+  },
+  "name": "acct-handler",
+  "version": "1.0.0",
+  "description": "Example handler for the acct: URI scheme",
+  "main": "server.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/social-web-foundation/acct-handler.git"
+  },
+  "keywords": [
+    "acct",
+    "webfinger",
+    "fediverse",
+    "activitypub",
+    "userprofile",
+    "socialweb"
+  ],
+  "author": "Evan Prodromou <evan@socialwebfoundation.org>",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/social-web-foundation/acct-handler/issues"
+  },
+  "homepage": "https://github.com/social-web-foundation/acct-handler#readme"
 }
