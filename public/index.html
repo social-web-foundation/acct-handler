@@ -53,7 +53,7 @@
 
         ActivityPubElement.fetchFunction =
           async (url, options) =>
-            fetch(proxyUrl, {
+            fetch('/api/proxy', {
               method: "POST",
               headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
