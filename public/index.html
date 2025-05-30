@@ -3,7 +3,6 @@
   <head>
     <title>Account Handler</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <script src="https://unpkg.com/@socialwebfoundation/ap-components"></script>
   </head>
   <body>
     <header>
@@ -25,8 +24,7 @@
       </section>
     </main>
     <script type="module">
-      import { ActivityPubElement } from "./ap-element.js";
-      import './ap-actor-page.js';
+      import { ActivityPubElement } from "https://unpkg.com/@socialwebfoundation/ap-components";
 
       function registerAcctHandler() {
         const loc = document.location.origin + document.location.pathname;
