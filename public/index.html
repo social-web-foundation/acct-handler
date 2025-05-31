@@ -7,38 +7,68 @@
     <style>
       body {
         font-family: system-ui, sans-serif;
-        margin: 2rem;
+        margin: 0;
         background-color: #f8f9fa;
+        display: flex;
+        justify-content: center;
+      }
+      .container {
+        width: 100%;
+        max-width: 80ch;
+        padding: 2rem 1rem;
+        box-sizing: border-box;
       }
       main {
         margin-top: 2rem;
       }
+      form {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+      }
+      form sl-input {
+        flex: 1 1 200px;
+        min-width: 0;
+      }
+      .nav-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+      }
+      .title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
-    <header style="margin-bottom: 2rem;">
-      <sl-card class="nav-card" style="padding: 1rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <div style="font-size: 1.5rem; font-weight: bold;">
-            Account Handler
+    <div class="container">
+      <header>
+        <sl-card class="nav-card" style="padding: 1rem;">
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="title">Account Handler</div>
+            <form action="." method="get">
+              <sl-input type="search" id="actor-search" name="q" placeholder="Search actor…" clearable></sl-input>
+              <sl-button type="submit" variant="primary">Show</sl-button>
+            </form>
+            <div class="nav-buttons">
+              <sl-button variant="default" onclick="registerAcctHandler()">Register Handler</sl-button>
+              <sl-button variant="default" onclick="unregisterAcctHandler()">Unregister</sl-button>
+              <sl-button href="https://socialwebfoundation.org/" target="_blank" variant="text">Social Web Foundation</sl-button>
+              <sl-button href="https://github.com/social-web-foundation/acct-handler" target="_blank" variant="text">GitHub</sl-button>
+            </div>
           </div>
-          <form action="." method="get" style="display: flex; gap: 0.5rem;">
-            <sl-input type="search" id="actor-search" name="q" placeholder="Search actor…" clearable></sl-input>
-            <sl-button type="submit" variant="primary">Show</sl-button>
-          </form>
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <sl-button variant="default" onclick="registerAcctHandler()">Register Handler</sl-button>
-            <sl-button variant="default" onclick="unregisterAcctHandler()">Unregister</sl-button>
-            <sl-button href="https://socialwebfoundation.org/" target="_blank" variant="text">Social Web Foundation</sl-button>
-            <sl-button href="https://github.com/social-web-foundation/acct-handler" target="_blank" variant="text">GitHub</sl-button>
-          </div>
-        </div>
-      </sl-card>
-    </header>
+        </sl-card>
+      </header>
 
-    <main>
-      <section id="account"></section>
-    </main>
+      <main>
+        <section id="account"></section>
+      </main>
+    </div>
 
     <script type="module">
       import { ActivityPubElement } from "https://unpkg.com/@socialwebfoundation/ap-components";
@@ -72,10 +102,24 @@
 
         const address = new URLSearchParams(document.location.search).get("q");
 
-        if (address && address.startsWith("web+acct:")) {
-          const acct = address.slice(4); // remove "web+"
-          const account = document.getElementById("account");
-          account.innerHTML = `<ap-actor-page webfinger="${acct}"></ap-actor-page>`;
+        if (address) {
+          const search = document.getElementById("actor-search");
+          customElements.whenDefined('sl-input').then(() => {
+            search.value = address;
+          });
+          let protocol, webfinger;
+          if (address.match(/(\w+):(\w+)@([\w\.]+)/)) {
+            [protocol, webfinger] = address.split(':', 1);
+          } else if (address.match(/(\w+)@([\w\.]+)/)) {
+            protocol = 'acct:';
+            webfinger = address;
+          }
+          if (['acct:', 'web+acct:'].includes(protocol) && webfinger) {
+            const account = document.getElementById("account");
+            customElements.whenDefined('ap-actor-page').then(() => {
+              account.innerHTML = `<ap-actor-page webfinger="acct:${webfinger}"></ap-actor-page>`;
+            });
+          }
         }
       };
     </script>
