@@ -111,10 +111,10 @@
           if (address.match(/(\w+):(\w+)@([\w\.]+)/)) {
             [protocol, webfinger] = address.split(':', 1);
           } else if (address.match(/(\w+)@([\w\.]+)/)) {
-            protocol = 'acct:';
+            protocol = 'acct';
             webfinger = address;
           }
-          if (['acct:', 'web+acct:'].includes(protocol) && webfinger) {
+          if (['acct', 'web+acct'].includes(protocol) && webfinger) {
             const account = document.getElementById("account");
             customElements.whenDefined('ap-actor-page').then(() => {
               account.innerHTML = `<ap-actor-page webfinger="acct:${webfinger}"></ap-actor-page>`;
