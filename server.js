@@ -1,145 +1,31 @@
 import express from 'express'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { promisify } from 'node:util'
-import crypto from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { HTTPSignature } from './HTTPSignature.js'
+import pino from 'pino'
+import pinoHttp from 'pino-http'
 
 const version = JSON.parse(readFileSync('./package.json', { encoding: 'utf8' }))
-
-const generateKeyPair = promisify(crypto.generateKeyPair)
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const NAME = 'acct-handler'
 const REPO_URL = 'https://github.com/social-web-foundation/acct-handler'
+const keyId = 'https://acct.swf.pub/actor/key'
 
+const logger = pino({ level: 'debug' })
 const app = express()
+const signer = new HTTPSignature(keyId, logger)
 
+app.use(pinoHttp({ logger }))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'))
 
-const getKeyPair = (() => {
-  let keyPair = null
-  return async () => {
-    if (!keyPair) {
-      keyPair = await generateKeyPair('rsa', {
-        modulusLength: 2048,
-        privateKeyEncoding: {
-          type: 'pkcs8',
-          format: 'pem'
-        },
-        publicKeyEncoding: {
-          type: 'spki',
-          format: 'pem'
-        }
-      })
-    }
-    return keyPair
-  }
-})()
-
-const getPublicKey = async () => {
-  const { publicKey } = await getKeyPair()
-  return publicKey
-}
-
-const getPrivateKey = async () => {
-  const { privateKey } = await getKeyPair()
-  return privateKey
-}
-
-async function signRequest (method, parsed, headers) {
-  const algorithm = 'rsa-sha256'
-  const headersList = (method === 'POST')
-    ? ['(request-target)', 'host', 'date', 'user-agent', 'content-type', 'digest']
-    : ['(request-target)', 'host', 'date', 'user-agent', 'accept']
-
-  const target = (parsed.search && parsed.search.length)
-    ? `${parsed.pathname}?${parsed.search}`
-    : `${parsed.pathname}`
-  const host = parsed.host
-
-  const ss = signingString(
-    method,
-    host,
-    target,
-    headers,
-    headersList
-  )
-
-  const keyId = 'https://acct.swf.pub/actor/key'
-  const privateKey = await getPrivateKey()
-
-  const signature = signWithKey(
-    privateKey,
-    ss,
-    algorithm
-  )
-
-  const sh = signatureHeader(keyId, headersList, signature, algorithm)
-
-  return sh
-}
-
-function signingString (method, host, target, headers, headersList) {
-  const lines = []
-  const canon = {}
-  for (const key in headers) {
-    canon[key.toLowerCase()] = headers[key]
-  }
-  for (const headerName of headersList) {
-    if (headerName === '(request-target)') {
-      lines.push(`(request-target): ${method.toLowerCase()} ${target.trim()}`)
-    } else if (headerName === 'host') {
-      lines.push(`host: ${host.trim()}`)
-    } else if (headerName in canon) {
-      lines.push(`${headerName}: ${canon[headerName].trim()}`)
-    } else {
-      throw new Error(`Missing header: ${headerName}`)
-    }
-  }
-
-  return lines.join('\n')
-}
-
-function signatureHeader (keyId, headersList, signature, algorithm) {
-  const components = {
-    keyId,
-    headers: headersList.join(' '),
-    signature,
-    algorithm
-  }
-  const properties = ['keyId', 'headers', 'signature', 'algorithm']
-
-  const pairs = []
-  for (const prop of properties) {
-    pairs.push(`${prop}="${escape(components[prop])}"`)
-  }
-
-  return pairs.join(',')
-}
-
-function escape (value) {
-  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-}
-
-function signWithKey (privateKey, signingString, algorithm) {
-  if (algorithm !== 'rsa-sha256') {
-    throw new Error('Only rsa-sha256 is supported')
-  }
-  const signer = crypto.createSign('sha256')
-  signer.update(signingString)
-  const signature = signer.sign(privateKey).toString('base64')
-  signer.end()
-
-  return signature
-}
-
 app.get('/actor', async (req, res) => {
   const host = req.headers.host || 'acct.swf.pub'
-  const publicKey = await getPublicKey()
+  const publicKey = await signer.getPublicKey()
 
   res.status(200)
   res.contentType('application/activity+json')
@@ -163,7 +49,7 @@ app.get('/actor', async (req, res) => {
 
 app.get('/actor/key', async (req, res) => {
   const host = req.headers.host || 'acct.swf.pub'
-  const publicKey = await getPublicKey()
+  const publicKey = await signer.getPublicKey()
 
   res.status(200)
   res.contentType('application/activity+json')
@@ -197,6 +83,8 @@ app.post('/api/proxy', async (req, res) => {
     return res.status(400).json({ error: 'id must be an https: URL' })
   }
 
+  req.log.info({ id }, 'proxy request')
+
   try {
     const headers = {
       date: (new Date()).toUTCString(),
@@ -204,9 +92,10 @@ app.post('/api/proxy', async (req, res) => {
       'user-agent': `${NAME}/${version} (${REPO_URL})`,
       accept: 'application/activity+json,application/ld+json'
     }
-    headers.signature = await signRequest('GET', url, headers)
+    headers.signature = await signer.signRequest('GET', url, headers)
     const result = await fetch(url, { headers })
     if (!result.ok) {
+      req.log.warning({ id, result }, 'Proxy request failed')
       res.status(500).json({ error: 'Proxy request failed' })
     } else {
       res.status(200)
