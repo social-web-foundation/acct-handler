@@ -113,7 +113,7 @@
             });
 
             const [protocol, webfinger] =
-              (address.match(/^(\w+):(\w+)@([\w\.]+)$/))
+              (address.match(/^([\w\+]+):(\w+)@([\w\.]+)$/))
               ? address.split(':', 2)
               : (address.match(/^(\w+)@([\w\.]+)$/))
                 ? [ 'acct', address ]
