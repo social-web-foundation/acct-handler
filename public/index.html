@@ -104,7 +104,7 @@
               },
               body: new URLSearchParams({ id: url }),
             });
-            cache.add(url, res)
+            cache.set(url, res)
             return res
           }
         }
