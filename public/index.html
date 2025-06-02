@@ -97,7 +97,7 @@
           if (cache.has(url)) {
             return cache.get(url)
           } else {
-            const res = fetch('/api/proxy', {
+            const res = await fetch('/api/proxy', {
               method: "POST",
               headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
