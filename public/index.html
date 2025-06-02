@@ -92,10 +92,20 @@
 
       const cache = new Map();
 
+      function wrap(body) {
+        return {
+          ok: true,
+          async body() {
+            return body
+          }
+        }
+      }
+
       window.onload = () => {
         ActivityPubElement.fetchFunction = async (url, options) => {
           if (cache.has(url)) {
-            return cache.get(url)
+            const body = cache.get(url)
+            return wrap(body)
           } else {
             const res = await fetch('/api/proxy', {
               method: "POST",
@@ -104,8 +114,12 @@
               },
               body: new URLSearchParams({ id: url }),
             });
-            cache.set(url, res)
-            return res
+            if (!res.ok) {
+              return res
+            } else {
+              const body = await res.body()
+              return wrap(body)
+            }
           }
         }
 
