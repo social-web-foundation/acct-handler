@@ -105,7 +105,7 @@
         ActivityPubElement.fetchFunction = async (url, options) => {
           if (cache.has(url)) {
             const json = cache.get(url)
-            return wrap(body)
+            return wrap(json)
           } else {
             const res = await fetch('/api/proxy', {
               method: "POST",
