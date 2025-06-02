@@ -90,15 +90,25 @@
       window.registerAcctHandler = registerAcctHandler;
       window.unregisterAcctHandler = unregisterAcctHandler;
 
+      const cache = new Map();
+
       window.onload = () => {
-        ActivityPubElement.fetchFunction = async (url, options) =>
-          fetch('/api/proxy', {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: new URLSearchParams({ id: url }),
-          });
+        ActivityPubElement.fetchFunction = async (url, options) => {
+          if (cache.has(url)) {
+            return cache.get(url)
+          } else {
+            const res = fetch('/api/proxy', {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              body: new URLSearchParams({ id: url }),
+            });
+            cache.add(url, res)
+            return res
+          }
+        }
+
 
         const params = new URLSearchParams(document.location.search)
 
