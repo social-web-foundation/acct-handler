@@ -6,7 +6,7 @@
     "pino-http": "^10.4.0"
   },
   "name": "acct-handler",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Example handler for the acct: URI scheme",
   "main": "server.js",
   "scripts": {
