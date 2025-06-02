@@ -92,11 +92,11 @@
 
       const cache = new Map();
 
-      function wrap(body) {
+      function wrap(json) {
         return {
           ok: true,
-          async body() {
-            return body
+          async json() {
+            return json
           }
         }
       }
@@ -104,7 +104,7 @@
       window.onload = () => {
         ActivityPubElement.fetchFunction = async (url, options) => {
           if (cache.has(url)) {
-            const body = cache.get(url)
+            const json = cache.get(url)
             return wrap(body)
           } else {
             const res = await fetch('/api/proxy', {
@@ -117,8 +117,9 @@
             if (!res.ok) {
               return res
             } else {
-              const body = await res.body()
-              return wrap(body)
+              const json = await res.json()
+              cache.set(url, json)
+              return wrap(json)
             }
           }
         }
