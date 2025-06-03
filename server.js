@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 
 const NAME = 'acct-handler'
 const REPO_URL = 'https://github.com/social-web-foundation/acct-handler'
-const keyId = 'https://acct.swf.pub/actor/key'
+const keyId = 'https://acct.swf.pub/service/key'
 
 const logger = pino({ level: 'debug' })
 const app = express()
@@ -23,7 +23,33 @@ app.use(pinoHttp({ logger }))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'))
 
-app.get('/actor', async (req, res) => {
+app.get('/.well-known/webfinger', async (req, res) => {
+  const host = req.headers.host || 'acct.swf.pub'
+  const { resource } = req.query
+
+  if (!resource) {
+    return res.status(400).json({ error: 'required parameter "resource"' })
+  }
+
+  if (resource !== `service@${host}`) {
+    return res.status(404).json({ error: 'no such user' })
+  }
+
+  res.status(200)
+  res.contentType('application/jrd+json')
+  res.json({
+    subject: resource,
+    links: [
+      {
+        rel: 'self',
+        type: 'application/activity+json',
+        href: `https://${host}/service`
+      }
+    ]
+  })
+})
+
+app.get('/service', async (req, res) => {
   const host = req.headers.host || 'acct.swf.pub'
   const publicKey = await signer.getPublicKey()
 
@@ -32,22 +58,25 @@ app.get('/actor', async (req, res) => {
   res.json({
     '@context': [
       'https://www.w3.org/ns/activitystreams',
-      'https://w3id.org/security/v1'
+      'https://w3id.org/security/v1',
+      'https://purl.archive.org/socialweb/webfinger'
     ],
-    id: `https://${host}/actor`,
+    id: `https://${host}/service`,
     type: 'Service',
     name: 'acct.swf.pub',
+    preferredUsername: 'service',
+    webfinger: `service@${host}`,
     summary: 'Example page for showing an ActivityPub actor',
     publicKey: {
-      owner: `https://${host}/actor`,
+      owner: `https://${host}/service`,
       type: 'CryptographicKey',
-      id: `https://${host}/actor/key`,
+      id: `https://${host}/service/key`,
       publicKeyPem: publicKey
     }
   })
 })
 
-app.get('/actor/key', async (req, res) => {
+app.get('/service/key', async (req, res) => {
   const host = req.headers.host || 'acct.swf.pub'
   const publicKey = await signer.getPublicKey()
 
@@ -58,9 +87,9 @@ app.get('/actor/key', async (req, res) => {
       'https://www.w3.org/ns/activitystreams',
       'https://w3id.org/security/v1'
     ],
-    owner: `https://${host}/actor`,
+    owner: `https://${host}/service`,
     type: 'CryptographicKey',
-    id: `https://${host}/actor/key`,
+    id: `https://${host}/service/key`,
     publicKeyPem: publicKey
   })
 })
