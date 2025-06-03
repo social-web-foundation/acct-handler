@@ -31,7 +31,7 @@ app.get('/.well-known/webfinger', async (req, res) => {
     return res.status(400).json({ error: 'required parameter "resource"' })
   }
 
-  if (resource !== `actor@${host}`) {
+  if (resource !== `acct:actor@${host}`) {
     return res.status(404).json({ error: 'no such user' })
   }
 
