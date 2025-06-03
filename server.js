@@ -97,7 +97,8 @@ app.post('/api/proxy', async (req, res) => {
     req.log.debug({ id }, 'fetching URL')
     const result = await fetch(url, { headers })
     if (!result.ok) {
-      req.log.warning({ id, result }, 'Proxy request failed')
+      const text = await result.text()
+      req.log.warn({ id, status: result.status, text }, 'Proxy request failed')
       res.status(500).json({ error: 'Proxy request failed' })
     } else {
       req.log.info({ id, result }, 'Proxy request succeeded')
