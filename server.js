@@ -67,6 +67,8 @@ app.get('/actor', async (req, res) => {
     preferredUsername: 'actor',
     webfinger: `actor@${host}`,
     summary: 'Example page for showing an ActivityPub actor',
+    inbox: `https://${host}/actor/inbox`,
+    outbox: `https://${host}/actor/outbox`,
     publicKey: {
       owner: `https://${host}/actor`,
       type: 'CryptographicKey',
@@ -92,6 +94,22 @@ app.get('/actor/key', async (req, res) => {
     id: `https://${host}/actor/key`,
     publicKeyPem: publicKey
   })
+})
+
+app.get('/actor/inbox', async (req, res) => {
+  res.status(405).text('Method not allowed')
+})
+
+app.post('/actor/inbox', async (req, res) => {
+  res.status(405).text('Method not allowed')
+})
+
+app.get('/actor/outbox', async (req, res) => {
+  res.status(405).text('Method not allowed')
+})
+
+app.post('/actor/outbox', async (req, res) => {
+  res.status(405).text('Method not allowed')
 })
 
 app.post('/api/proxy', async (req, res) => {
