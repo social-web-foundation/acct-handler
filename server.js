@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 
 const NAME = 'acct-handler'
 const REPO_URL = 'https://github.com/social-web-foundation/acct-handler'
-const keyId = 'https://acct.swf.pub/service/key'
+const keyId = 'https://acct.swf.pub/actor/key'
 
 const logger = pino({ level: 'debug' })
 const app = express()
@@ -31,7 +31,7 @@ app.get('/.well-known/webfinger', async (req, res) => {
     return res.status(400).json({ error: 'required parameter "resource"' })
   }
 
-  if (resource !== `service@${host}`) {
+  if (resource !== `actor@${host}`) {
     return res.status(404).json({ error: 'no such user' })
   }
 
@@ -43,13 +43,13 @@ app.get('/.well-known/webfinger', async (req, res) => {
       {
         rel: 'self',
         type: 'application/activity+json',
-        href: `https://${host}/service`
+        href: `https://${host}/actor`
       }
     ]
   })
 })
 
-app.get('/service', async (req, res) => {
+app.get('/actor', async (req, res) => {
   const host = req.headers.host || 'acct.swf.pub'
   const publicKey = await signer.getPublicKey()
 
@@ -61,22 +61,22 @@ app.get('/service', async (req, res) => {
       'https://w3id.org/security/v1',
       'https://purl.archive.org/socialweb/webfinger'
     ],
-    id: `https://${host}/service`,
+    id: `https://${host}/actor`,
     type: 'Service',
     name: 'acct.swf.pub',
-    preferredUsername: 'service',
-    webfinger: `service@${host}`,
+    preferredUsername: 'actor',
+    webfinger: `actor@${host}`,
     summary: 'Example page for showing an ActivityPub actor',
     publicKey: {
-      owner: `https://${host}/service`,
+      owner: `https://${host}/actor`,
       type: 'CryptographicKey',
-      id: `https://${host}/service/key`,
+      id: `https://${host}/actor/key`,
       publicKeyPem: publicKey
     }
   })
 })
 
-app.get('/service/key', async (req, res) => {
+app.get('/actor/key', async (req, res) => {
   const host = req.headers.host || 'acct.swf.pub'
   const publicKey = await signer.getPublicKey()
 
@@ -87,9 +87,9 @@ app.get('/service/key', async (req, res) => {
       'https://www.w3.org/ns/activitystreams',
       'https://w3id.org/security/v1'
     ],
-    owner: `https://${host}/service`,
+    owner: `https://${host}/actor`,
     type: 'CryptographicKey',
-    id: `https://${host}/service/key`,
+    id: `https://${host}/actor/key`,
     publicKeyPem: publicKey
   })
 })
