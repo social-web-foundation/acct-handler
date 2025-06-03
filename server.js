@@ -106,7 +106,7 @@ app.post('/api/proxy', async (req, res) => {
       res.json(await result.json())
     }
   } catch (error) {
-    req.log.error({ id }, 'Proxy request errored')
+    req.log.error({ id, err: error }, 'Proxy request errored')
     res.status(500).json({ error: 'Proxy request errored' })
   }
 })
