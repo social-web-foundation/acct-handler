@@ -47,7 +47,7 @@ export class HTTPSignature {
       : ['(request-target)', 'host', 'date', 'user-agent', 'accept']
 
     const target = (parsed.search && parsed.search.length)
-      ? `${parsed.pathname}?${parsed.search}`
+      ? `${parsed.pathname}${parsed.search}`
       : `${parsed.pathname}`
     const host = parsed.host
 
