@@ -97,19 +97,19 @@ app.get('/actor/key', async (req, res) => {
 })
 
 app.get('/actor/inbox', async (req, res) => {
-  res.status(405).text('Method not allowed')
+  res.status(405).json({ error: 'Method not allowed' })
 })
 
 app.post('/actor/inbox', async (req, res) => {
-  res.status(405).text('Method not allowed')
+  res.status(405).json({ error: 'Method not allowed' })
 })
 
 app.get('/actor/outbox', async (req, res) => {
-  res.status(405).text('Method not allowed')
+  res.status(405).json({ error: 'Method not allowed' })
 })
 
 app.post('/actor/outbox', async (req, res) => {
-  res.status(405).text('Method not allowed')
+  res.status(405).json({ error: 'Method not allowed' })
 })
 
 app.post('/api/proxy', async (req, res) => {
