@@ -6,7 +6,7 @@ import { HTTPSignature } from './HTTPSignature.js'
 import pino from 'pino'
 import pinoHttp from 'pino-http'
 
-const version = JSON.parse(readFileSync('./package.json', { encoding: 'utf8' }))
+const { version } = JSON.parse(readFileSync('./package.json', { encoding: 'utf8' }))
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -92,18 +92,22 @@ app.post('/api/proxy', async (req, res) => {
       'user-agent': `${NAME}/${version} (${REPO_URL})`,
       accept: 'application/activity+json,application/ld+json'
     }
+    req.log.debug({ headers, id }, 'signing request')
     headers.signature = await signer.signRequest('GET', url, headers)
+    req.log.debug({ id }, 'fetching URL')
     const result = await fetch(url, { headers })
     if (!result.ok) {
       req.log.warning({ id, result }, 'Proxy request failed')
       res.status(500).json({ error: 'Proxy request failed' })
     } else {
+      req.log.info({ id, result }, 'Proxy request succeeded')
       res.status(200)
       res.contentType('application/activity+json')
       res.json(await result.json())
     }
   } catch (error) {
-    res.status(500).json({ error: 'Proxy request failed' })
+    req.log.error({ id }, 'Proxy request errored')
+    res.status(500).json({ error: 'Proxy request errored' })
   }
 })
 
