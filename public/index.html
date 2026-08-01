@@ -56,8 +56,8 @@
               <sl-button type="submit" variant="primary">Show</sl-button>
             </form>
             <div class="nav-buttons">
-              <sl-button variant="default" onclick="registerAcctHandler()">Register Handler</sl-button>
-              <sl-button variant="default" onclick="unregisterAcctHandler()">Unregister</sl-button>
+              <sl-button id="register-btn" variant="default">Register Handler</sl-button>
+              <sl-button id="unregister-btn" variant="default">Unregister</sl-button>
               <sl-button href="https://socialwebfoundation.org/" target="_blank" variant="text">Social Web Foundation</sl-button>
               <sl-button href="https://github.com/social-web-foundation/acct-handler" target="_blank" variant="text">GitHub</sl-button>
             </div>
@@ -75,16 +75,27 @@
 
       function registerAcctHandler() {
         const loc = document.location.origin + document.location.pathname;
-        console.log("Registering protocol handler");
         const handler = `${loc}?q=%s`;
-        navigator.registerProtocolHandler("web+acct", handler);
+        console.log("Registering protocol handler:", handler);
+        try {
+          navigator.registerProtocolHandler("web+acct", handler, "Webfinger Browser");
+          console.log("registerProtocolHandler called successfully");
+        } catch (e) {
+          console.error("Failed to register handler:", e);
+          alert(`Registration failed: ${e.message}`);
+        }
       }
 
       function unregisterAcctHandler() {
         const loc = document.location.origin + document.location.pathname;
-        console.log("Unregistering protocol handler");
         const handler = `${loc}?q=%s`;
-        navigator.unregisterProtocolHandler("web+acct", handler);
+        console.log("Unregistering protocol handler:", handler);
+        try {
+          navigator.unregisterProtocolHandler("web+acct", handler);
+          console.log("unregisterProtocolHandler called");
+        } catch (e) {
+          console.error("Failed to unregister:", e);
+        }
       }
 
       window.registerAcctHandler = registerAcctHandler;
@@ -100,6 +111,11 @@
           }
         }
       }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('register-btn')?.addEventListener('click', registerAcctHandler);
+        document.getElementById('unregister-btn')?.addEventListener('click', unregisterAcctHandler);
+      });
 
       window.onload = () => {
         ActivityPubElement.fetchFunction = async (url, options) => {
@@ -138,16 +154,17 @@
             });
 
             const [protocol, webfinger] =
-              (address.match(/^([\w\+]+):(\w+)@([\w\.]+)$/))
+              (address.match(/^([\w\+]+):([^@]+)@(.+)$/))
               ? address.split(':', 2)
-              : (address.match(/^(\w+)@([\w\.]+)$/))
+              : (address.match(/^([^@]+)@(.+)$/))
                 ? [ 'acct', address ]
                 : [ undefined, undefined ];
 
             if (['acct', 'web+acct'].includes(protocol) && webfinger) {
               const account = document.getElementById("account");
               customElements.whenDefined('ap-actor-page').then(() => {
-                account.innerHTML = `<ap-actor-page webfinger="acct:${webfinger}"></ap-actor-page>`;
+                const clean = webfinger.replace(/^acct:/, '');
+                account.innerHTML = `<ap-actor-page webfinger="acct:${clean}"></ap-actor-page>`;
               });
             }
           }
