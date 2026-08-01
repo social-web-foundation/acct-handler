@@ -113,8 +113,22 @@
       }
 
       window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('register-btn')?.addEventListener('click', registerAcctHandler);
-        document.getElementById('unregister-btn')?.addEventListener('click', unregisterAcctHandler);
+        const registerButton = document.getElementById('register-btn')
+        if (registerButton) {
+          registerButton.addEventListener('click', registerAcctHandler);
+          if (!('registerProtocolHandler' in navigator)) {
+            registerButton.setAttribute('disabled', '');
+            registerButton.setAttribute('title', 'Not supported in this browser');
+          }
+        }
+        const unregisterButton = document.getElementById('unregister-btn')
+        if (unregisterButton) {
+          unregisterButton.addEventListener('click', unregisterAcctHandler);
+          if (!('unregisterProtocolHandler' in navigator)) {
+            unregisterButton.setAttribute('disabled', '');
+            unregisterButton.setAttribute('title', 'Not supported in this browser');
+          }
+        }
       });
 
       window.onload = () => {
