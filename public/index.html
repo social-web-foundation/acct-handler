@@ -178,7 +178,7 @@
               const account = document.getElementById("account");
               customElements.whenDefined('ap-actor-page').then(() => {
                 const clean = webfinger.replace(/^acct:/, '');
-                account.innerHTML = `<ap-actor-page webfinger="acct:${clean}"></ap-actor-page>`;
+                account.innerHTML = `<ap-actor-page webfinger="${clean}"></ap-actor-page>`;
               });
             }
           }
